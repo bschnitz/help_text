@@ -2,11 +2,12 @@
 
 #### DESCRIPTION
 
-help\_text is a python module based on the argparse module. it is used to
-load help text from a json file to make it possible to seperate that text from
-the rest of the code. it also restricts the argparse module to a very specific
-way of structuring the command, for which the help text shall be provided. the
-provided example covers pretty much all, this module can be used for.
+help\_text is a python3 module based on the argparse module. it is used to
+load help text from a json file, in order to make it possible to seperate that
+text from the rest of the code. it also restricts the argparse module to a very
+specific way of structuring the command, for which the help text shall be
+provided. the provided example covers pretty much all, this module can be used
+for.
 
 #### EXAMPLE
 
