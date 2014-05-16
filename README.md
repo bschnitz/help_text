@@ -29,3 +29,7 @@ an example can be found in examples. help.json is the definition of the help for
 #### LICENSE
 
 help\_text is licensed under version 3 of the GNU General Public License.
+
+#### CONTACT
+
+Benjamin Schnitzler <benjaminschnitzler@googlemail.com>
