@@ -25,3 +25,7 @@ an example can be found in examples. help.json is the definition of the help for
 - make it possible to alternatively load the help text from a yaml file using
   this great PyYAML package, since it is really no joy for a human to
   write/debug json files.
+
+#### LICENSE
+
+help\_text is licensed under version 3 of the GNU General Public License.
