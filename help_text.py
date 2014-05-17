@@ -41,6 +41,8 @@ class HelpText():
 
   def add_command( self, command, subparsers ):
     arguments = command.pop('arguments')
+    if type(command['description']) == list:
+      command['description'] = " ".join(command['description'])
     sub_parser = subparsers.add_parser( **command )
     sub_parser.set_defaults( func=self.not_implemented_yet )
     for arg in arguments:
