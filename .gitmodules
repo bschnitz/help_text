@@ -1,0 +1,4 @@
+[submodule "help_text"]
+	path = help_text
+	url = git@github.com:bschnitz/help_text.git
+	branch = help_text
