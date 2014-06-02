@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 
-sys.path.append('..')
-
-from help_text import HelpText
+from help_text.help_text import HelpText
 
 class Help:
   def __init__(self):
-    self.help_text = HelpText( help_file="help.json", argv=sys.argv )
+    data_path = os.path.dirname(__file__) + "/data"
+    self.help_text = HelpText(
+        help_file=data_path + "/help.json",
+        argv=sys.argv,
+        convert_from=data_path + "/help.yaml"
+    )
     self.help_text.set_handle( self.cry, "cry" )
 
   def execute(self):
