@@ -47,13 +47,6 @@ readme is located), You can do this:
 
     PYTHONPATH=. python3 examples/help.py cry help -l 20
 
-
-#### FUTURE VISIONS
-
-- make it possible to alternatively load the help text from a yaml file using
-  this great PyYAML package, since it is really no joy for a human to
-  write/debug json files.
-
 #### CONTACT
 
 Benjamin Schnitzler <benjaminschnitzler@googlemail.com>
