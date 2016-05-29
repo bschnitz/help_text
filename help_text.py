@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with help_text. If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import os, sys
 import json
 from argparse import ArgumentParser
 from importlib import import_module
@@ -74,19 +74,11 @@ class HelpText():
     self.set_handle( self.print_help )
     self.parsers = {}
     with open( self.help_file, 'r' ) as fh:
-      arg_txt = self.text_parser.load(fh)
-      if 'subcommands' in arg_txt:
-        sub_sec = arg_txt['subcommands']
-        description = sub_sec['description']
-        if type(description) == list: description = " ".join(description)
-        description = description.format( script=self.argv[0] )
-        subparsers = self.parser.add_subparsers( description=description )
-        for cmd in sub_sec['commands']: self.add_command(cmd, subparsers)
-        if 'help' in self.parsers: self.set_handle( self.print_help, 'help' )
+      self.arg_txt = self.text_parser.load(fh)
 
   def add_command( self, command, subparsers ):
     arguments = command.pop('arguments', [])
-    if type(command['description']) == list:
+    if 'description' in command and type(command['description']) == list:
       command['description'] = " ".join(command['description'])
     sub_parser = subparsers.add_parser( **command )
     sub_parser.set_defaults( func=self.not_implemented_yet )
@@ -108,14 +100,33 @@ class HelpText():
     else:              self.default_handle = func
 
   def not_implemented_yet(self, args):
-    print("Not implemented yet.")
+    print("Not implemented yet.", file=sys.stderr)
 
   def print_help(self, args):
     if 'cmd' in args and args.cmd != None:
-      self.parsers[args.cmd].print_help()
+      cmd = args.cmd[0] if type(args.cmd) == list else args.cmd
+      self.parsers[cmd].print_help()
     else: self.parser.print_help()
 
+    
+    """ preparse the help text, which was read during initialization
+
+    this function will parse all text that was read from the help text file and
+    use string.format with the arguments specified in self.set_format. it will
+    also preparse the text for the use with the argparse module.
+    """
+  def preparse_help_text( self ):
+    if 'subcommands' in self.arg_txt:
+      sub_sec = self.arg_txt['subcommands']
+      description = sub_sec['description']
+      if type(description) == list: description = " ".join(description)
+      description = description.format( script=self.argv[0] )
+      subparsers = self.parser.add_subparsers( description=description )
+      for cmd in sub_sec['commands']: self.add_command(cmd, subparsers)
+      if 'help' in self.parsers: self.set_handle( self.print_help, 'help' )
+
   def parse_and_exec(self):
+    self.preparse_help_text()
     args = self.parser.parse_args(self.argv[1:])
     if not 'func' in args: args.func = self.default_handle
     args.func(args)
