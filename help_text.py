@@ -21,7 +21,6 @@ from argparse import ArgumentParser
 from importlib import import_module
 
 class HelpText():
-  types = { 'str':str, 'int':int }
   def __init__(self, **kwargs):
     """ Initialize the HelpText Object
 
@@ -51,6 +50,9 @@ class HelpText():
     self.argv = kwargs['argv']
     use_yaml  = kwargs.get('use_yaml', False)
     self.help_file = kwargs['help_file']
+
+    self.format_args = []
+    self.format_kwargs = {}
 
     self.text_parser = import_module('yaml') if use_yaml else json
 
@@ -93,7 +95,8 @@ class HelpText():
     if 'type' in args:
       # we could just use eval here... but making eval safe is difficult,
       # so let's better avoid any risk by using a type checking dictionary
-      args['type'] = self.types[args['type']]
+      types = { 'str':str, 'int':int }
+      args['type'] = types[args['type']]
 
   def set_handle( self, func, subcmd=None ):
     if subcmd != None: self.parsers[subcmd].set_defaults( func=func )
@@ -107,7 +110,6 @@ class HelpText():
       cmd = args.cmd[0] if type(args.cmd) == list else args.cmd
       self.parsers[cmd].print_help()
     else: self.parser.print_help()
-
     
     """ preparse the help text, which was read during initialization
 
@@ -115,15 +117,48 @@ class HelpText():
     use string.format with the arguments specified in self.set_format. it will
     also preparse the text for the use with the argparse module.
     """
+
+  def set_format( self, *args, **kwargs ):
+    """ string.format is called on the variable text fields (description,
+        metavar, help) in the commands and subcommands sections of the help text
+        file, using the parameters provided with this function.
+    """
+    self.format_args = args
+    self.format_kwargs = kwargs
+
+  def format( self, command, key ):
+    """ formats command[key] using the format specified with set_format """
+    command[key] = command[key].format(
+      *self.format_args,
+      **self.format_kwargs
+    )
+
+  def preparse_command( self, command ):
+    """ preparses the variable text fields of the help text command definition
+
+        positional arguments:
+
+            command
+                subsection of subcommands or commands from the help text file,
+                stored in a dictionary.
+    """
+    for key in [ 'description', 'help', 'metavar' ]:
+      if key in command:
+        if type(command[key]) == list:
+          command[key] = " ".join( command[text] )
+        self.format( command, key )
+
   def preparse_help_text( self ):
+    """ formatting of the help text and initialization of the arparse parser """
     if 'subcommands' in self.arg_txt:
       sub_sec = self.arg_txt['subcommands']
-      description = sub_sec['description']
-      if type(description) == list: description = " ".join(description)
-      description = description.format( script=self.argv[0] )
-      subparsers = self.parser.add_subparsers( description=description )
-      for cmd in sub_sec['commands']: self.add_command(cmd, subparsers)
-      if 'help' in self.parsers: self.set_handle( self.print_help, 'help' )
+      commands = sub_sec.pop( 'commands', {} )
+      self.preparse_command( sub_sec )
+      subparsers = self.parser.add_subparsers( **sub_sec )
+      for cmd in commands:
+        self.add_command( cmd, subparsers )
+      if 'help' in self.parsers:
+        self.set_handle( self.print_help, 'help' )
 
   def parse_and_exec(self):
     self.preparse_help_text()
