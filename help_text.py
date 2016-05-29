@@ -54,12 +54,12 @@ class HelpText():
     self.format_args = []
     self.format_kwargs = {}
 
+    self.argparser_arguments = {}
+
     self.text_parser = import_module('yaml') if use_yaml else json
 
     self.conv_from = kwargs.get('convert_from', None)
     if self.conv_from != None: self.convert( use_yaml )
-
-    self.create_argument_parsers()
 
   def convert( self, use_yaml ):
     if not os.path.exists(self.help_file) or\
@@ -72,7 +72,7 @@ class HelpText():
         else:  self.text_parser.dump( arg_txt, dst, ensure_ascii=0, indent=4 )
 
   def create_argument_parsers( self ):
-    self.parser = ArgumentParser()
+    self.parser = ArgumentParser( **self.argparser_arguments )
     self.set_handle( self.print_help )
     self.parsers = {}
     with open( self.help_file, 'r' ) as fh:
@@ -101,6 +101,10 @@ class HelpText():
   def set_handle( self, func, subcmd=None ):
     if subcmd != None: self.parsers[subcmd].set_defaults( func=func )
     else:              self.default_handle = func
+
+  def set_argument_parser_args( self, **kwargs ):
+    """ additional arguments passed to argparse.ArgumentParser """
+    self.argparser_arguments = kwargs
 
   def not_implemented_yet(self, args):
     print("Not implemented yet.", file=sys.stderr)
@@ -161,6 +165,7 @@ class HelpText():
         self.set_handle( self.print_help, 'help' )
 
   def parse_and_exec(self):
+    self.create_argument_parsers()
     self.preparse_help_text()
     args = self.parser.parse_args(self.argv[1:])
     if not 'func' in args: args.func = self.default_handle
