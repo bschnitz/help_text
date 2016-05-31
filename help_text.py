@@ -61,6 +61,8 @@ class HelpText():
     self.conv_from = kwargs.get('convert_from', None)
     if self.conv_from != None: self.convert( use_yaml )
 
+    self.handles = {}
+
   def convert( self, use_yaml ):
     if not os.path.exists(self.help_file) or\
        os.path.getmtime(self.conv_from) >= os.path.getmtime(self.help_file):
@@ -99,7 +101,7 @@ class HelpText():
       args['type'] = types[args['type']]
 
   def set_handle( self, func, subcmd=None ):
-    if subcmd != None: self.parsers[subcmd].set_defaults( func=func )
+    if subcmd != None: self.handles[subcmd] = func
     else:              self.default_handle = func
 
   def set_argument_parser_args( self, **kwargs ):
@@ -162,11 +164,16 @@ class HelpText():
       for cmd in commands:
         self.add_command( cmd, subparsers )
       if 'help' in self.parsers:
-        self.set_handle( self.print_help, 'help' )
+        self.parsers['help'].set_defaults( func=self.print_help )
+
+  def associate_handles_with_parsers(self):
+    for name, func in self.handles.items():
+      self.parsers[name].set_defaults( func=func )
 
   def parse_and_exec(self):
     self.create_argument_parsers()
     self.preparse_help_text()
+    self.associate_handles_with_parsers()
     args = self.parser.parse_args(self.argv[1:])
     if not 'func' in args: args.func = self.default_handle
     args.func(args)
